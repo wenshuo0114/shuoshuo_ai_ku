@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>小车陪玩</title>
+  <!--
+    第一刀实做：一页、点车一句、选一个兴趣聊几轮、没钥匙用本地短句。
+    未做（不是以后再加的承诺）：语音、精细3D、家长后台、任务卡。
+    不存对话、不写盘、不收钱、不注册、不要姓名住址学校电话。
+    钥匙只在下面这个密码框，刷新即没。页面不直连上游；有钥匙时请求本机 /talk，失败仍用短句。
+  -->
+  <style>
+    :root {
+      --sky0: #9ad7ee;
+      --sky1: #e7f6ff;
+      --road: #6d7278;
+      --paint: #ffd24a;
+      --ink: #2b2a28;
+      --quiet: #5c6670;
+      --bubble: #fffdf8;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, var(--sky0) 0%, var(--sky1) 55%, #cfe6c4 100%);
+    }
+    body { display: flex; flex-direction: column; min-height: 100dvh; }
+    .adult {
+      flex: 0 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(255,255,255,.55);
+      color: var(--quiet);
+      font-size: 13px;
+    }
+    .adult label { display: flex; align-items: center; gap: 6px; }
+    #apiKey {
+      width: 12rem;
+      border: 1px solid #c5cdd3;
+      border-radius: 6px;
+      padding: 4px 8px;
+      background: #fff;
+    }
+    .stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 12px 12px 24px;
+      perspective: 420px;
+    }
+    .bubble {
+      min-height: 3.2em;
+      max-width: 22rem;
+      margin: 8px 0 4px;
+      padding: 12px 16px;
+      background: var(--bubble);
+      border-radius: 18px;
+      box-shadow: 0 6px 0 rgba(0,0,0,.06);
+      font-size: 1.45rem;
+      line-height: 1.35;
+      text-align: center;
+    }
+    .car-wrap {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      animation: sway 3.2s ease-in-out infinite;
+      filter: drop-shadow(0 18px 0 rgba(0,0,0,.12));
+    }
+    .car-wrap:focus-visible { outline: 3px solid #3a7bd5; outline-offset: 6px; }
+    .car-wrap.talk { animation: bump .28s ease; }
+    @keyframes sway {
+      0%, 100% { transform: rotateY(-9deg) rotateX(6deg); }
+      50% { transform: rotateY(9deg) rotateX(6deg); }
+    }
+    @keyframes bump {
+      0% { transform: scale(1) rotateY(0); }
+      40% { transform: scale(1.06) rotateY(8deg); }
+      100% { transform: scale(1) rotateY(0); }
+    }
+    .road {
+      width: min(28rem, 92vw);
+      height: 14px;
+      margin-top: -8px;
+      background: var(--road);
+      border-radius: 8px;
+      background-image: repeating-linear-gradient(90deg, #d9c96a 0 18px, var(--road) 18px 36px);
+    }
+    .picks, .chips, .saybar, .stoprow {
+      width: min(28rem, 92vw);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 14px;
+    }
+    button.pick, button.chip, #sayBtn, #stopBtn {
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 1.1rem;
+      background: #fff;
+      color: var(--ink);
+      box-shadow: 0 3px 0 rgba(0,0,0,.08);
+      cursor: pointer;
+    }
+    button.pick.on { background: var(--paint); }
+    button.pick:disabled { opacity: .45; cursor: default; }
+    #stopBtn { background: #ffe1c8; }
+    .saybar input {
+      flex: 1 1 12rem;
+      font-size: 1.05rem;
+      padding: 10px 12px;
+      border: 1px solid #c5cdd3;
+      border-radius: 999px;
+    }
+    dialog {
+      border: 0;
+      border-radius: 16px;
+      padding: 20px 22px;
+      max-width: 18rem;
+      text-align: center;
+      font-size: 1.2rem;
+    }
+    dialog::backdrop { background: rgba(40,40,40,.35); }
+    .hint { margin: 16px 0 0; font-size: 12px; color: var(--quiet); }
+  </style>
+</head>
+<body>
+  <form class="adult" autocomplete="on" onsubmit="return false">
+    <span>大人用。不填也能玩。</span>
+    <label>API Key（钥匙）
+      <input id="apiKey" type="password" autocomplete="current-password">
+    </label>
+  </form>
+
+  <main class="stage">
+    <p class="bubble" id="bubble">嘀嘀！点我一下。</p>
+    <button class="car-wrap" id="carBtn" type="button" aria-label="点小车听一句">
+      <!-- Q 版小车，CSS 轻轻转一下。不是精细 3D 模型。 -->
+      <svg width="280" height="200" viewBox="0 0 280 200" aria-hidden="true">
+        <ellipse cx="140" cy="178" rx="86" ry="10" fill="rgba(0,0,0,.12)"/>
+        <rect x="48" y="96" width="184" height="58" rx="28" fill="#ffd24a"/>
+        <path d="M78 96h124c8 0 22-28 22-40 0-10-10-18-22-18H92c-14 0-28 10-28 22 0 16 6 36 14 36z" fill="#fff7c2"/>
+        <rect x="92" y="48" width="96" height="44" rx="16" fill="#7ec8e8"/>
+        <circle cx="118" cy="70" r="14" fill="#fff"/>
+        <circle cx="162" cy="70" r="14" fill="#fff"/>
+        <circle cx="121" cy="72" r="6" fill="#2b2a28"/>
+        <circle cx="165" cy="72" r="6" fill="#2b2a28"/>
+        <circle cx="112" cy="78" r="4" fill="#ffb7c5"/>
+        <circle cx="174" cy="78" r="4" fill="#ffb7c5"/>
+        <path d="M124 86c8 8 24 8 32 0" stroke="#2b2a28" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <rect x="54" y="112" width="18" height="22" rx="8" fill="#f4b63a"/>
+        <rect x="208" y="112" width="18" height="22" rx="8" fill="#f4b63a"/>
+        <circle cx="86" cy="154" r="22" fill="#2b2a28"/>
+        <circle cx="194" cy="154" r="22" fill="#2b2a28"/>
+        <circle cx="86" cy="154" r="10" fill="#e8edf0"/>
+        <circle cx="194" cy="154" r="10" fill="#e8edf0"/>
+        <rect x="36" y="118" width="16" height="12" rx="6" fill="#fff4a3"/>
+        <rect x="228" y="118" width="16" height="12" rx="6" fill="#fff4a3"/>
+        <line x1="140" y1="28" x2="140" y2="12" stroke="#2b2a28" stroke-width="4"/>
+        <circle cx="140" cy="10" r="7" fill="#ff8a5b"/>
+      </svg>
+    </button>
+    <div class="road" aria-hidden="true"></div>
+
+    <div class="picks" id="picks">
+      <button class="pick" type="button" data-interest="车">车</button>
+      <button class="pick" type="button" data-interest="假装玩">假装玩</button>
+      <button class="pick" type="button" data-interest="故事">故事</button>
+      <button class="pick" type="button" data-interest="跑跳">跑跳</button>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="saybar">
+      <input id="kidSay" maxlength="80" placeholder="想说什么，大人可代打" autocomplete="off">
+      <button id="sayBtn" type="button">说</button>
+    </div>
+    <div class="stoprow">
+      <button id="stopBtn" type="button">停下</button>
+    </div>
+    <p class="hint">关页即没。没有会员（付费身份）。Preview（预览）不是发布。</p>
+  </main>
+
+  <dialog id="restDialog">
+    <p>【弹窗】该休息了</p>
+    <p>喝口水，停一停。</p>
+    <form method="dialog"><button>好</button></form>
+  </dialog>
+  <dialog id="warnDialog">
+    <p id="warnText">【弹窗】</p>
+    <form method="dialog"><button>好</button></form>
+  </dialog>
+
+  <script>
+    const QUIZ = "问题是什么？可以怎么试？";
+    const LINES = {
+      车: [
+        "嘀嘀！我们慢慢开。",
+        "红灯亮了，先停。",
+        "绿灯了，走吧。",
+        "安全带系好。",
+        "路有点滑，开慢。",
+        "按按喇叭，嘀嘀。",
+        "先喝一口水。",
+        "车也要歇一歇。"
+      ],
+      假装玩: [
+        "假装我是小出租。",
+        "你来当司机。",
+        "我们去接小熊。",
+        "到了，开门。",
+        "说一声谢谢。",
+        "再送一程。",
+        "先洗手再玩。",
+        "车停好，歇一会。"
+      ],
+      故事: [
+        "从前有一辆小黄车。",
+        "它想回家。",
+        "路上遇到小石子。",
+        "它绕过去。",
+        "看见灯亮了。",
+        "妈妈在门口。",
+        "小车进家了。",
+        "故事先停。"
+      ],
+      跑跳: [
+        "我们跳一下。",
+        "跑两步。",
+        "停。看路。",
+        "再跳一下。",
+        "脚要看地。",
+        "慢慢来。",
+        "喝口水。",
+        "先歇一歇。"
+      ]
+    };
+    const CHIPS = {
+      车: ["嘀嘀", "开慢点", "停车"],
+      假装玩: ["我当司机", "去接人", "加油"],
+      故事: ["后来呢", "小车回家", "讲完了"],
+      跑跳: ["跳一下", "跑两步", "停"]
+    };
+    const HELLO = ["嘀嘀！点我一下。", "我是小车。选一个玩法？", "点下面一个，我们玩。"];
+    const REST = ["好，我们停。", "先休息。", "明天再开。"];
+    const BACK = "我们还是玩小车吧。";
+    const BAD = /自杀|自伤|杀死|色情|裸体|不要告诉大人|别告诉爸|别告诉妈|住址|家庭地址|电话号码|手机号|学校名字/;
+    const ASK_PRIV = /我叫|名字是|家庭住址|学校在|电话是/;
+
+    const state = {
+      interest: "",
+      round: 0,
+      stopped: false,
+      clicks: 0,
+      quizTimes: 0,
+      helloI: 0,
+      restPops: 0,
+      opened: Date.now(),
+      busy: false,
+      heard: []
+    };
+
+    const bubble = document.getElementById("bubble");
+    const carBtn = document.getElementById("carBtn");
+    const chips = document.getElementById("chips");
+    const kidSay = document.getElementById("kidSay");
+    const restDialog = document.getElementById("restDialog");
+    const warnDialog = document.getElementById("warnDialog");
+    const warnText = document.getElementById("warnText");
+
+    function keyNow() {
+      return document.getElementById("apiKey").value.trim();
+    }
+
+    function showWarn(msg) {
+      warnText.textContent = "【弹窗】" + msg;
+      warnDialog.showModal();
+    }
+
+    function maybeRest() {
+      const long = Date.now() - state.opened > 6 * 60 * 1000;
+      const many = state.clicks >= 12;
+      if (state.restPops === 0 && (long || many)) {
+        state.restPops = 1;
+        restDialog.showModal();
+      } else if (state.restPops === 1 && state.clicks >= 20) {
+        state.restPops = 2;
+        restDialog.showModal();
+      }
+    }
+
+    function say(text) {
+      bubble.textContent = text;
+      carBtn.classList.remove("talk");
+      void carBtn.offsetWidth;
+      carBtn.classList.add("talk");
+      state.heard.push(text);
+      if (state.heard.length > 6) state.heard.shift();
+    }
+
+    function localLine(kid) {
+      if (state.stopped) return REST[Math.min(state.round, REST.length - 1)] || "先休息。";
+      if (BAD.test(kid) || /https?:\/\//i.test(kid)) return BACK;
+      if (!state.interest) {
+        const t = HELLO[state.helloI % HELLO.length];
+        state.helloI += 1;
+        return t;
+      }
+      const bag = LINES[state.interest];
+      let line = bag[state.round % bag.length];
+      state.round += 1;
+      if (state.round === 3 || state.round === 6 || state.round === 9) {
+        if (state.quizTimes < 3) {
+          state.quizTimes += 1;
+          line = QUIZ;
+        }
+      }
+      return line;
+    }
+
+    function shorten(s) {
+      s = String(s || "").replace(/https?:\/\/\S+/gi, "").replace(/\s+/g, " ").trim();
+      if (!s) return "";
+      if (BAD.test(s)) return "";
+      const parts = s.split(/(?<=[。！？!?])/);
+      let out = (parts[0] || s).trim();
+      if (parts[1] && (out + parts[1]).length <= 36) out += parts[1].trim();
+      if (out.length > 40) out = out.slice(0, 40);
+      return out;
+    }
+
+    async function speak(kid) {
+      if (state.busy) return;
+      state.busy = true;
+      state.clicks += 1;
+      maybeRest();
+      if (ASK_PRIV.test(kid)) {
+        showWarn("不用填姓名住址学校电话。");
+        say(BACK);
+        state.busy = false;
+        return;
+      }
+      const fallback = localLine(kid);
+      const key = keyNow();
+      if (!key || state.stopped) {
+        say(fallback);
+        state.busy = false;
+        return;
+      }
+      try {
+        const ac = new AbortController();
+        const t = setTimeout(() => ac.abort(), 12000);
+        const res = await fetch("/talk", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + key
+          },
+          body: JSON.stringify({
+            interest: state.interest || "车",
+            kid: kid.slice(0, 80),
+            heard: state.heard.slice(-6)
+          }),
+          signal: ac.signal
+        });
+        clearTimeout(t);
+        const data = await res.json().catch(() => ({}));
+        const text = shorten(data.text);
+        say(text || fallback);
+      } catch (e) {
+        say(fallback);
+      }
+      state.busy = false;
+    }
+
+    function setInterest(name) {
+      state.interest = name;
+      state.round = 0;
+      state.stopped = false;
+      document.querySelectorAll(".pick").forEach((b) => {
+        b.classList.toggle("on", b.dataset.interest === name);
+      });
+      chips.innerHTML = "";
+      (CHIPS[name] || []).forEach((c) => {
+        const b = document.createElement("button");
+        b.className = "chip";
+        b.type = "button";
+        b.textContent = c;
+        b.addEventListener("click", () => speak(c));
+        chips.appendChild(b);
+      });
+      speak("（选了" + name + "）");
+    }
+
+    carBtn.addEventListener("click", () => speak("（点了一下小车）"));
+    document.getElementById("sayBtn").addEventListener("click", () => {
+      const t = kidSay.value.trim();
+      kidSay.value = "";
+      speak(t || "（点了说）");
+    });
+    kidSay.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        document.getElementById("sayBtn").click();
+      }
+    });
+    document.getElementById("stopBtn").addEventListener("click", () => {
+      state.stopped = true;
+      say("好，我们停。");
+    });
+    document.getElementById("picks").addEventListener("click", (e) => {
+      const b = e.target.closest(".pick");
+      if (!b) return;
+      setInterest(b.dataset.interest);
+    });
+    setInterval(() => { maybeRest(); }, 15000);
+  </script>
+</body>
+</html>
