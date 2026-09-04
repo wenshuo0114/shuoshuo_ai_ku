@@ -104,6 +104,7 @@
     if (kind === "back") return pick(LINES.back);
     if (kind === "stop") return pick(LINES.stop);
     if (!interest) return pick(LINES.open);
+    if (kind === "fresh") return pick(LINES[interest]);
     var bag = LINES[interest].concat(LINES.again);
     return pick(bag);
   }
@@ -191,7 +192,7 @@
     }
   }
 
-  async function talk(userText) {
+  async function talk(userText, kind) {
     if (busy) return;
     var text = String(userText || "").trim();
     if (text.length > 40) text = text.slice(0, 40);
@@ -222,7 +223,7 @@
       return;
     }
 
-    if (!line) line = localLine("");
+    if (!line) line = localLine(kind || "");
     if (blocked(line)) line = localLine("back");
 
     show(line);
@@ -248,7 +249,7 @@
       c.classList.toggle("is-on", c === btn);
     });
     renderReplies();
-    talk("");
+    talk("", "fresh");
   });
 
   car.addEventListener("click", function () {
