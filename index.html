@@ -361,7 +361,7 @@
       }
       try {
         const ac = new AbortController();
-        const t = setTimeout(() => ac.abort(), 12000);
+        const t = setTimeout(() => ac.abort(), 5000);
         const res = await fetch("/talk", {
           method: "POST",
           headers: {

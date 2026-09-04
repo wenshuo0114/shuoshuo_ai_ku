@@ -123,7 +123,7 @@ class Handler(BaseHTTPRequestHandler):
             method="POST",
         )
         try:
-            with urllib.request.urlopen(req, timeout=12) as resp:
+            with urllib.request.urlopen(req, timeout=5) as resp:
                 raw = json.loads(resp.read().decode("utf-8"))
             text = (
                 raw.get("choices", [{}])[0]
@@ -137,8 +137,8 @@ class Handler(BaseHTTPRequestHandler):
 
 def main() -> None:
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)
-    print("只给家里用。打开 http://%s:%s/" % (HOST, PORT))
-    print("不对外网开放。Preview（预览）不是发布。")
+    print("只给家里用。打开 http://%s:%s/" % (HOST, PORT), flush=True)
+    print("不对外网开放。Preview（预览）不是发布。", flush=True)
     httpd.serve_forever()
 
 
