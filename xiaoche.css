@@ -1,0 +1,319 @@
+/* 卡通壳加一点透视，不是精细 3D（三维）。不拉外网字体。 */
+
+:root {
+  --sky: #dff3ff;
+  --paper: #fff8ee;
+  --ink: #2a2a2a;
+  --mute: #5c5c5c;
+  --car: #ffb347;
+  --car-deep: #f08a24;
+  --cabin: #2b4c7e;
+  --chip: #fff;
+  --line: #e7d7c4;
+  --stop: #c45c26;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 20% 0%, #fff 0 18%, transparent 19%),
+    linear-gradient(180deg, var(--sky) 0 42%, #c8e8b8 42% 46%, #efe3cf 46% 100%);
+}
+
+.page {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 2rem;
+}
+
+.kid-head h1 {
+  margin: 0;
+  font-size: 1.7rem;
+}
+
+.sub,
+.label,
+.grownup-note,
+.grownup-title {
+  margin: 0.25rem 0 0;
+}
+
+.sub,
+.label,
+.grownup-note {
+  color: var(--mute);
+  font-size: 0.95rem;
+}
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 18rem;
+  padding: 1rem 0 0.5rem;
+  perspective: 700px;
+}
+
+.bubble {
+  max-width: 22rem;
+  min-height: 3.4rem;
+  margin: 0 0 0.8rem;
+  padding: 0.7rem 1rem;
+  border-radius: 1.1rem;
+  background: var(--paper);
+  border: 2px solid var(--line);
+  font-size: 1.35rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.car {
+  position: relative;
+  width: 13.5rem;
+  height: 9.2rem;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  transform: rotateX(8deg) rotateY(-8deg);
+  transform-style: preserve-3d;
+  transition: transform 0.2s ease;
+}
+
+.car:focus-visible {
+  outline: 3px solid #2b4c7e;
+  outline-offset: 6px;
+}
+
+.car.is-talk .body {
+  animation: hop 0.35s ease;
+}
+
+.car.is-talk .wheel {
+  animation: spin 0.45s linear;
+}
+
+.body {
+  position: absolute;
+  left: 1.2rem;
+  top: 1.6rem;
+  width: 11rem;
+  height: 4.6rem;
+  border-radius: 1.6rem 2.2rem 1.2rem 1.2rem;
+  background: linear-gradient(160deg, #ffd27a 0%, var(--car) 46%, var(--car-deep) 100%);
+  box-shadow: 0.4rem 0.55rem 0 #e07912, 0 0.8rem 1.2rem rgba(0, 0, 0, 0.18);
+}
+
+.cabin {
+  position: absolute;
+  left: 3.3rem;
+  top: -1.15rem;
+  width: 5.4rem;
+  height: 2.7rem;
+  border-radius: 1.2rem 1.2rem 0.5rem 0.5rem;
+  background: linear-gradient(180deg, #6ea0d6, var(--cabin));
+  box-shadow: inset 0 -0.4rem 0 rgba(255, 255, 255, 0.15);
+}
+
+.eye {
+  position: absolute;
+  top: 0.7rem;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: inset -0.18rem -0.12rem 0 0.22rem #1a1a1a;
+}
+
+.eye-l { left: 1.05rem; }
+.eye-r { right: 1.05rem; }
+
+.smile {
+  position: absolute;
+  left: 2rem;
+  bottom: 0.35rem;
+  width: 1.4rem;
+  height: 0.45rem;
+  border: 0.16rem solid #ffd7a8;
+  border-top: 0;
+  border-radius: 0 0 1rem 1rem;
+}
+
+.hood {
+  position: absolute;
+  right: 0.7rem;
+  top: 0.7rem;
+  width: 2.1rem;
+  height: 1.3rem;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.antenna {
+  position: absolute;
+  left: 6.3rem;
+  top: 0;
+  width: 0.18rem;
+  height: 1.3rem;
+  background: #555;
+}
+
+.antenna::after {
+  content: "";
+  position: absolute;
+  top: -0.35rem;
+  left: -0.28rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: #ff5d5d;
+}
+
+.bumper {
+  position: absolute;
+  left: 1.5rem;
+  top: 5.7rem;
+  width: 10.4rem;
+  height: 0.55rem;
+  border-radius: 0.4rem;
+  background: #f3f3f3;
+  box-shadow: 0 0.15rem 0 #cfcfcf;
+}
+
+.wheel {
+  position: absolute;
+  top: 5.85rem;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, #d9d9d9 0 28%, #222 29% 62%, #666 63% 78%, #111 79% 100%);
+}
+
+.wheel-l { left: 2.1rem; }
+.wheel-r { right: 2.1rem; }
+
+.arm {
+  position: absolute;
+  top: 3.4rem;
+  width: 1.5rem;
+  height: 0.45rem;
+  border-radius: 1rem;
+  background: var(--car-deep);
+}
+
+.arm-left { left: 0.1rem; transform: rotate(-18deg); }
+.arm-right { right: 0.1rem; transform: rotate(18deg); }
+
+.interest,
+.talk,
+.grownup {
+  margin-top: 1rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.chip,
+.btn {
+  min-height: 2.8rem;
+  padding: 0.45rem 0.9rem;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--chip);
+  font: inherit;
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+.chip.is-on {
+  background: #ffe08a;
+  border-color: var(--car-deep);
+}
+
+.talk-form,
+.key-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.6rem;
+}
+
+#kidLine,
+#apiKey {
+  flex: 1 1 10rem;
+  min-height: 2.8rem;
+  padding: 0.4rem 0.7rem;
+  border: 2px solid var(--line);
+  border-radius: 0.8rem;
+  font: inherit;
+  background: #fff;
+}
+
+.btn-stop {
+  color: var(--stop);
+}
+
+.grownup {
+  margin-top: 1.6rem;
+  padding: 0.8rem;
+  border: 1px dashed var(--line);
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.grownup-title {
+  font-weight: 700;
+}
+
+.key-form {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.key-form label {
+  font-size: 0.9rem;
+  color: var(--mute);
+}
+
+.warn {
+  border: 2px solid var(--line);
+  border-radius: 1rem;
+  padding: 1rem 1.1rem;
+  max-width: 20rem;
+  background: var(--paper);
+}
+
+.warn::backdrop {
+  background: rgba(40, 30, 20, 0.35);
+}
+
+@keyframes hop {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes spin {
+  to { transform: rotate(220deg); }
+}
+
+@media (max-width: 420px) {
+  .bubble { font-size: 1.2rem; }
+  .car { transform: rotateX(6deg) rotateY(-4deg) scale(0.92); }
+}
