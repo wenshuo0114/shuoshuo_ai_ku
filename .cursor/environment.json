@@ -1,0 +1,10 @@
+{
+  "name": "小车陪玩 (Little Car Companion)",
+  "install": "python3 --version && python3 -m compileall -q play.py test_page.py",
+  "terminals": [
+    {
+      "name": "play-server",
+      "command": "python3 play.py"
+    }
+  ]
+}
