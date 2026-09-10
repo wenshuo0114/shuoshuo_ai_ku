@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- 不拉外链脚本、外链图。对话不落盘。 -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; font-src 'self'; form-action 'self'; base-uri 'self'; frame-ancestors 'none'">
+  <title>小车在家</title>
+  <link rel="stylesheet" href="xiaoche.css">
+</head>
+<body>
+  <main class="page">
+    <header class="kid-head">
+      <h1>小车在家</h1>
+      <p class="sub">点小车，说一句。能停。给家里玩。</p>
+    </header>
+
+    <section class="stage" aria-label="小车">
+      <p id="bubble" class="bubble" role="status" aria-live="polite">嘀嘀。点我一下。</p>
+
+      <button type="button" id="car" class="car" aria-label="小车，点一下说话">
+        <span class="antenna" aria-hidden="true"></span>
+        <span class="arm arm-left" aria-hidden="true"></span>
+        <span class="arm arm-right" aria-hidden="true"></span>
+        <span class="body">
+          <span class="cabin">
+            <span class="eye eye-l"></span>
+            <span class="eye eye-r"></span>
+            <span class="smile"></span>
+          </span>
+          <span class="hood"></span>
+        </span>
+        <span class="bumper" aria-hidden="true"></span>
+        <span class="wheel wheel-l" aria-hidden="true"></span>
+        <span class="wheel wheel-r" aria-hidden="true"></span>
+      </button>
+    </section>
+
+    <section class="interest" aria-label="选一样兴趣">
+      <p class="label">选一样，我们顺着玩</p>
+      <div class="chips" id="interestChips">
+        <button type="button" class="chip" data-interest="car">开车</button>
+        <button type="button" class="chip" data-interest="pretend">假装玩</button>
+        <button type="button" class="chip" data-interest="story">听故事</button>
+        <button type="button" class="chip" data-interest="move">跑跳</button>
+      </div>
+    </section>
+
+    <section class="talk" aria-label="接着说">
+      <p class="label">可以跟着点，或大人帮打几个字</p>
+      <div class="chips" id="replyChips"></div>
+      <form id="talkForm" class="talk-form">
+        <input id="kidLine" type="text" maxlength="40" autocomplete="off" enterkeyhint="send" aria-label="这一句">
+        <button type="submit" class="btn">说</button>
+        <button type="button" id="stopBtn" class="btn btn-stop">停</button>
+      </form>
+    </section>
+
+    <section class="grownup" aria-label="大人用">
+      <p class="grownup-title">大人用</p>
+      <p class="grownup-note">钥匙只放家长自己的密码库。不填也能玩。刷新就没。我们不代申请、不保管。</p>
+      <form id="keyForm" class="key-form" autocomplete="on">
+        <label for="apiKey">接口钥匙 API Key（接口钥匙）</label>
+        <!-- 只要这一个钥匙框。不用 localStorage（本地存储）。指纹自动填是浏览器做的。 -->
+        <input id="apiKey" type="password" autocomplete="current-password">
+      </form>
+      <p class="grownup-note">Preview（预览）不当发布。不做公开分发。</p>
+    </section>
+  </main>
+
+  <dialog id="warnDialog" class="warn">
+    <p id="warnText"></p>
+    <form method="dialog">
+      <button type="submit" class="btn">知道了</button>
+    </form>
+  </dialog>
+
+  <script src="xiaoche.js"></script>
+</body>
+</html>
