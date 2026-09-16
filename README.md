@@ -23,7 +23,7 @@ python3 serve.py
 
 不要填钥匙、不要 Caddy、不要 VPS、不要 Hyper-V 共享盘。
 
-荣耀本机出厂进桌面后，若要关掉 Hyper-V / WSL：右键 `disable-hyperv-on-this-pc.bat` → 以管理员身份运行，然后重启。脚本开头也写了安全芯片、跳过 Wi-Fi 那两步（只能你在笔记本上点）。
+荣耀本机出厂进桌面后，右键 `disable-hyperv-on-this-pc.bat` → 以管理员身份运行，然后重启。家庭版没有 `Microsoft-Hyper-V-All`、DISM 报 `0x8024402c`（没连上更新）都正常；脚本会跳过没有的项，并仍执行 `bcdedit`。不要双击 `System32` 里的 `cmstp`。
 
 ## 硬限制（不做）
 
