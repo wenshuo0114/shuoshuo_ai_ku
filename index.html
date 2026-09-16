@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- 不拉外链脚本、外链图。对话不落盘。 -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; font-src 'self'; form-action 'self'; base-uri 'self'; frame-ancestors 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'self' data:; font-src 'self'; form-action 'self'; base-uri 'self'; frame-ancestors 'none'">
   <title>小车在家</title>
   <link rel="stylesheet" href="xiaoche.css">
 </head>
@@ -56,15 +56,9 @@
       </form>
     </section>
 
-    <section class="grownup" aria-label="大人用">
-      <p class="grownup-title">大人用</p>
-      <p class="grownup-note">钥匙只放家长自己的密码库。不填也能玩。刷新就没。我们不代申请、不保管。</p>
-      <form id="keyForm" class="key-form" autocomplete="on">
-        <label for="apiKey">接口钥匙 API Key（接口钥匙）</label>
-        <!-- 只要这一个钥匙框。不用 localStorage（本地存储）。指纹自动填是浏览器做的。 -->
-        <input id="apiKey" type="password" autocomplete="current-password">
-      </form>
-      <p class="grownup-note">Preview（预览）不当发布。不做公开分发。</p>
+    <section class="grownup" aria-label="家里用">
+      <p class="grownup-title">家里用</p>
+      <p class="grownup-note">只本机玩。不接 API。不上公网。对话不保存，关页即没。</p>
     </section>
   </main>
 

@@ -1,10 +1,8 @@
 /* 内存里聊几轮。关页即没。不写 localStorage（本地存储）。 */
-/* 没钥匙：只用下面短句。有钥匙且本地小服务开着：才把话转到上游。 */
-/* 打开本文件时即使填了钥匙也不外发，避免钥匙乱跑。失败用短句兜底。 */
+/* 只用本地短句。不接 API。不上公网。 */
 
 (function () {
   var MAX_TURNS = 8;
-  var MAX_LINE = 36;
   var restShown = false;
   var busy = false;
   var stopFlag = false;
@@ -59,9 +57,6 @@
     stop: [
       "好。停。"
     ],
-    wait: [
-      "我先在旁边等你。"
-    ]
   };
 
   var REPLIES = {
@@ -79,25 +74,12 @@
   var kidLine = document.getElementById("kidLine");
   var talkForm = document.getElementById("talkForm");
   var stopBtn = document.getElementById("stopBtn");
-  var keyForm = document.getElementById("keyForm");
-  var apiKey = document.getElementById("apiKey");
   var replyChips = document.getElementById("replyChips");
   var warnDialog = document.getElementById("warnDialog");
   var warnText = document.getElementById("warnText");
 
   function pick(list) {
     return list[Math.floor(Math.random() * list.length)];
-  }
-
-  function shorten(text) {
-    var t = String(text || "").replace(/\s+/g, " ").trim();
-    if (!t) return "";
-    var cut = t.split(/[。！？]/);
-    t = (cut[0] || t).trim();
-    if (cut[1]) t += "。" + cut[1].trim();
-    if (!/[。！？]$/.test(t)) t += "。";
-    if (t.length > MAX_LINE) t = t.slice(0, MAX_LINE) + "。";
-    return t;
   }
 
   function localLine(kind) {
@@ -134,14 +116,6 @@
     if (turns.length > 6) turns = turns.slice(-6);
   }
 
-  function keyValue() {
-    return (apiKey.value || "").trim();
-  }
-
-  function onLocalServer() {
-    return window.location.protocol === "http:" || window.location.protocol === "https:";
-  }
-
   function renderReplies() {
     replyChips.textContent = "";
     var list = REPLIES[interest] || REPLIES[""];
@@ -161,38 +135,7 @@
     return BLOCK.test(text || "");
   }
 
-  async function fromUpstream(userText) {
-    var key = keyValue();
-    if (!key || !onLocalServer()) return "";
-    var ctrl = new AbortController();
-    var timer = setTimeout(function () {
-      ctrl.abort();
-    }, 8000);
-    try {
-      var res = await fetch("/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: ctrl.signal,
-        body: JSON.stringify({
-          apiKey: key,
-          text: userText,
-          interest: interest,
-          turns: turns
-        })
-      });
-      if (!res.ok) return "";
-      var data = await res.json();
-      var line = shorten(data && data.line);
-      if (!line || blocked(line)) return "";
-      return line;
-    } catch (err) {
-      return "";
-    } finally {
-      clearTimeout(timer);
-    }
-  }
-
-  async function talk(userText, kind) {
+  function talk(userText, kind) {
     if (busy) return;
     var text = String(userText || "").trim();
     if (text.length > 40) text = text.slice(0, 40);
@@ -212,18 +155,7 @@
 
     if (text) remember("kid", text);
 
-    var line = "";
-    if (keyValue() && onLocalServer()) {
-      show(pick(LINES.wait));
-      line = await fromUpstream(text || "接着玩");
-    }
-
-    if (stopFlag) {
-      busy = false;
-      return;
-    }
-
-    if (!line) line = localLine(kind || "");
+    var line = localLine(kind || "");
     if (blocked(line)) line = localLine("back");
 
     show(line);
@@ -269,10 +201,6 @@
 
   stopBtn.addEventListener("click", function () {
     stopNow();
-  });
-
-  keyForm.addEventListener("submit", function (ev) {
-    ev.preventDefault();
   });
 
   renderReplies();

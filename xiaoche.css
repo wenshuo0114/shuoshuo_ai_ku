@@ -245,8 +245,7 @@ body {
   border-color: var(--car-deep);
 }
 
-.talk-form,
-.key-form {
+.talk-form {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -254,8 +253,7 @@ body {
   margin-top: 0.6rem;
 }
 
-#kidLine,
-#apiKey {
+#kidLine {
   flex: 1 1 10rem;
   min-height: 2.8rem;
   padding: 0.4rem 0.7rem;
@@ -279,16 +277,6 @@ body {
 
 .grownup-title {
   font-weight: 700;
-}
-
-.key-form {
-  flex-direction: column;
-  align-items: stretch;
-}
-
-.key-form label {
-  font-size: 0.9rem;
-  color: var(--mute);
 }
 
 .warn {
